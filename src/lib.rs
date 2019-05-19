@@ -8,7 +8,7 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 
-use typenum::{True, IsLess, Unsigned};
+use typenum::{B1, B0, IsLess, Unsigned};
 
 pub use typenum::consts as length;
 pub mod index;
@@ -104,11 +104,33 @@ where
     }
 }
 
+pub struct InBounds;
+pub struct OutOfBounds;
+
+pub trait BoundsCheck {
+    type Value;
+}
+impl BoundsCheck for B1 { type Value = InBounds; }
+impl BoundsCheck for B0 { type Value = OutOfBounds; }
+
+pub trait IsInBounds<L> {
+    type Check;
+}
+
+impl<U, L> IsInBounds<L> for U
+where
+    L: Unsigned,
+    U: Unsigned + IsLess<L>,
+    <U as IsLess<L>>::Output: BoundsCheck,
+{
+    type Check = <<U as IsLess<L>>::Output as BoundsCheck>::Value;
+}
+
 impl<I, T, L> Index<I> for Vector<T, L>
 where
     Vec<T>: Index<usize>,
     L: Unsigned,
-    I: Unsigned + IsLess<L, Output=True>,
+    I: Unsigned + IsInBounds<L, Check=InBounds>
 {
     type Output = <Vec<T> as Index<usize>>::Output;
 
@@ -121,7 +143,7 @@ impl<I, T, L> IndexMut<I> for Vector<T,L>
 where
     Vec<T>: IndexMut<usize>,
     L: Unsigned,
-    I: Unsigned + IsLess<L, Output=True>
+    I: Unsigned + IsInBounds<L, Check=InBounds>
 {
     fn index_mut(&mut self, _: I) -> &mut Self::Output {
         &mut self.inner[I::to_usize()]
