@@ -6,8 +6,8 @@ A experimental library providing a compile-time length-checking vector implement
 
 Basic macro-based creation and indexing example:
 ```rust
-extern crate typenum;
-use typenum::const::*;
+extern crate vector;
+use vector::index::*;
 
 fn main() {
     let v = vector![1, 3, 4];
@@ -20,8 +20,8 @@ fn main() {
 
 Accessing the `Vector` using an out-of-bounds index will fail:
 ```rust, compile_fail
-extern crate typenum;
-use typenum::const::*;
+extern crate vector;
+use vector::index::*;
 
 fn main() {
     let v = vector![1, 3, 4];
